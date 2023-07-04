@@ -43,11 +43,8 @@ default_args = {
 
 @task()
 def extract(chemin_fichier: Path):
-    with gzip.open(chemin_fichier) as f:
-        dict_doc_budg = xmltodict.parse(
-            f.read(), encoding="latin-1", dict_constructor=dict
-        )
-    return dict_doc_budg
+    doc = xmltodict.parse(gzip.GzipFile(chemin_fichier), dict_constructor=dict)
+    return doc
 
 
 @task()
@@ -68,10 +65,10 @@ def load(infos_dict: dict):
 
 
 with DAG(
-    dag_id="ETL_AB",
+    dag_id="etl_ab",
     # These args will get passed on to each operator
     # You can override them on a per-task basis during operator initialization
-    # default_args,
+    default_args=default_args,
     schedule_interval="@daily",
     start_date=datetime(2021, 1, 1, tz="UTC"),
     # description="Ce DAG récupère des actes budgétaires en local pour les insérer en base de données",
