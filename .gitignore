@@ -9,3 +9,6 @@ TODO.md
 aws*
 include/*
 minio.deb
+*.duckdb*
+*.parquet
+*.csv
