@@ -12,3 +12,4 @@ minio.deb
 *.duckdb*
 *.parquet
 *.csv
+*.db
