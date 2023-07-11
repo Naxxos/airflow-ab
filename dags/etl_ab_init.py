@@ -19,9 +19,7 @@ DATA_SOURCE_PATH = "/opt/airflow/data/1_source"
 DATA_EXTRACT_PATH = "./data/2_extract"
 
 default_args = {
-    "owner": "Raphaël BEVENOT",
     "depends_on_past": False,
-    "email": ["raphael.bevenot@interieur.gouv.fr"],
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 1,
