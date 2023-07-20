@@ -69,21 +69,24 @@ def list_files(hook, bucket: str):
 
 @task
 def process_file(hook: S3Hook, files: list, bucket: str):
-    for file in files:
-        id_doc_budg = file.split("-")[1].split(".")[0]
+    with duckdb.connect(DB_NAME) as conn:
+        for file in files:
+            id_doc_budg = file.split("-")[1].split(".")[0]
 
-        object_s3 = hook.get_key(bucket_name="data", key=file)
+            object_s3 = hook.get_key(bucket_name=bucket, key=file)
+            print(file)
 
-        with gzip.GzipFile(fileobj=object_s3.get()["Body"]) as gz_file:
-            dict_from_xml = xmltodict.parse(gz_file, dict_constructor=dict)
+            with gzip.GzipFile(fileobj=object_s3.get()["Body"]) as gz_file:
+                dict_from_xml = xmltodict.parse(gz_file, dict_constructor=dict)
 
-        temp_df = pd.DataFrame.from_dict(
-            utils.parsing_infos_etablissement(dict_from_xml, id_doc_budg)
-        )
+            temp_df = pd.DataFrame.from_dict(
+                utils.parsing_infos_etablissement(dict_from_xml, id_doc_budg)
+            )
 
-        temp_df = utils.explode_annexe_json_into_rows_first_way(temp_df, CHAMPS_BUDG)
+            temp_df = utils.explode_annexe_json_into_rows_first_way(
+                temp_df, CHAMPS_BUDG
+            )
 
-        with duckdb.connect(DB_NAME) as conn:
             conn.sql("INSERT INTO budget SELECT * FROM temp_df")
 
 
