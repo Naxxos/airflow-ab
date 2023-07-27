@@ -1,4 +1,4 @@
-from modules import utils, config
+from modules import parsing, config
 
 from airflow import DAG
 from airflow.decorators import task, dag
@@ -16,7 +16,7 @@ default_args = {
     "catchup": False,
 }
 
-BUCKET = "full"
+BUCKET = "data"
 DATA_EXTRACT_PATH = "./data/2_extract/"
 DB_NAME = DATA_EXTRACT_PATH + "actes_budgetaires.duckdb"
 CHAMPS_BUDG = config.CHAMPS_LIGNE_BUDGET
@@ -80,10 +80,10 @@ def process_file(hook: S3Hook, files: list, bucket: str):
                 dict_from_xml = xmltodict.parse(gz_file, dict_constructor=dict)
 
             temp_df = pd.DataFrame.from_dict(
-                utils.parsing_infos_etablissement(dict_from_xml, id_doc_budg)
+                parsing.parsing_infos_etablissement(dict_from_xml, id_doc_budg)
             )
 
-            temp_df = utils.explode_annexe_json_into_rows_first_way(
+            temp_df = parsing.explode_annexe_json_into_rows_first_way(
                 temp_df, CHAMPS_BUDG
             )
 
@@ -91,7 +91,7 @@ def process_file(hook: S3Hook, files: list, bucket: str):
 
 
 @dag(default_args=default_args, schedule_interval=None)
-def process_files():
+def extract_load_xml_to_parquet():
     hook = S3Hook(aws_conn_id="minio_s3_conn")
 
     initialize_db(db_name=DB_NAME)
@@ -100,4 +100,4 @@ def process_files():
     process_file(hook=hook, files=files, bucket=BUCKET)
 
 
-dag = process_files()
+dag = extract_load_xml_to_parquet()

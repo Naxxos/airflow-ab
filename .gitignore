@@ -13,3 +13,4 @@ minio.deb
 *.parquet
 *.csv
 *.db
+*/schemas/*
